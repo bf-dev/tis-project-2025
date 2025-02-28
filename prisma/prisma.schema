@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Application {
+    id           String      @id @default(uuid())
+    
+    applicantEmail String
+   
+    coverLetter  String
+    status       String      @default("pending")
+    
+    opportunity  Opportunity @relation(fields: [opportunityId], references: [id])
+    opportunityId String
+    
+    createdAt    DateTime    @default(now())
+    updatedAt    DateTime    @updatedAt
+}
+
+model Opportunity {
+    id           String        @id @default(uuid())
+    
+    title        String
+    description  String
+    deadline     String?
+    type         String        // Added type column
+    
+    creatorEmail String
+    applications Application[]
+    
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+} 

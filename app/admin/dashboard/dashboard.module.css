@@ -1,0 +1,26 @@
+/* Button hover effects */
+.createButton:hover {
+    background-color: #4338ca !important;
+}
+
+/* Link hover effects */
+.editLink:hover {
+    color: #3730a3 !important;
+}
+
+.deleteLink:hover {
+    color: #b91c1c !important;
+}
+
+/* Tab hover effects */
+.tab:hover {
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+}
+
+/* Select focus effects */
+.select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+} 
