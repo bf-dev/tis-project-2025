@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+
+interface Opportunity {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    creatorName: string;
+    creatorEmail: string;
+    deadline?: string;
+}
 
 export default function CreateApplication() {
     const router = useRouter();
@@ -11,7 +21,7 @@ export default function CreateApplication() {
         coverLetter: ''
     });
 
-    const [opportunity, setOpportunity] = useState<any>(null);
+    const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -20,7 +30,7 @@ export default function CreateApplication() {
             try {
                 const response = await fetch(`/api/opportunity`);
                 const data = await response.json();
-                const opportunity = data.filter((opp: any) => opp.id === opportunityId)[0];
+                const opportunity = data.filter((opp: Opportunity) => opp.id === opportunityId)[0];
                 
                 if (opportunity) {
                     setOpportunity(opportunity);

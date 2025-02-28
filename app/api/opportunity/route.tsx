@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getAuth, clerkClient, currentUser } from '@clerk/nextjs/server'
+import { getAuth, clerkClient } from '@clerk/nextjs/server'
 import { isTeacher, isAdmin } from '@/lib/acl';
 
 export async function GET(req: NextRequest) {

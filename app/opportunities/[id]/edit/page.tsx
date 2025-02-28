@@ -3,7 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-export default function EditOpportunity( ) {
+interface Opportunity {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    creatorName: string;
+    creatorEmail: string;
+    deadline?: string;
+}
+
+export default function EditOpportunity() {
     const router = useRouter();
     const id = useParams().id;
     const [formData, setFormData] = useState({
@@ -21,7 +31,7 @@ export default function EditOpportunity( ) {
                 const response = await fetch(`/api/opportunity`);
                 //filter out the opportunity with the id
                 const data = await response.json();
-                const opportunity = data.filter((opportunity: any) => opportunity.id === id)[0]
+                const opportunity = data.filter((opportunity: Opportunity) => opportunity.id === id)[0]
                 console.log(opportunity);
                 if (response.ok) {
                     setFormData({

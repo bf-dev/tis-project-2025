@@ -50,7 +50,7 @@ export default function AdminDashboard() {
         };
 
         checkAdminStatus();
-    }, []);
+    }, [router]);
 
     const fetchData = async () => {
         try {

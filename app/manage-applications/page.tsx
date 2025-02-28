@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Application {
     id: string;
@@ -23,7 +22,6 @@ export default function ManageApplications() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const router = useRouter();
 
     useEffect(() => {
         fetchApplications();

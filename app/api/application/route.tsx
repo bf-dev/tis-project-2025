@@ -5,7 +5,6 @@ import { isAdmin, isStudent } from "@/lib/acl";
 import { sendMail } from "@/lib/mail";
 
 export async function POST(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
   const body = await request.json();
   const { userId } = await getAuth(request);
   if (!userId) {

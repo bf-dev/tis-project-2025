@@ -3,10 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
-export default  function DeleteOpportunity() {
+interface Opportunity {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    creatorName: string;
+    creatorEmail: string;
+    deadline?: string;
+}
+
+export default function DeleteOpportunity() {
     const {id} = useParams();
     const router = useRouter();
-    const [opportunity, setOpportunity] = useState<any>(null);
+    const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
 
     useEffect(() => {
         const fetchOpportunity = async () => {
@@ -14,7 +24,7 @@ export default  function DeleteOpportunity() {
                 const response = await fetch(`/api/opportunity`);
                 //filter out the opportunity with the id
                 const data = await response.json();
-                const opportunity = data.filter((opportunity: any) => opportunity.id === id)[0]
+                const opportunity = data.filter((opportunity: Opportunity) => opportunity.id === id)[0]
                 console.log(opportunity);
                 if (response.ok) {
                     setOpportunity(opportunity);

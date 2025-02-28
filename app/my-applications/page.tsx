@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Application {
     id: string;
@@ -22,7 +21,6 @@ export default function MyApplications() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const router = useRouter();
 
     useEffect(() => {
         const fetchApplications = async () => {
@@ -79,7 +77,7 @@ export default function MyApplications() {
             
             {applications.length === 0 ? (
                 <div className="text-center py-8">
-                    <p style={{ color: '#666', marginBottom: '1rem' }}>You haven't submitted any applications yet.</p>
+                    <p style={{ color: '#666', marginBottom: '1rem' }}>You haven&apos;t submitted any applications yet.</p>
                     <a 
                         href="/opportunities" 
                         style={{ color: '#4f46e5', textDecoration: 'none' }}
