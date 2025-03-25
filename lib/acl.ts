@@ -2,7 +2,7 @@ import type { Session } from "next-auth";
 
 type User = Session["user"];
 
-const adminEmails = ["bfdev.main@gmail.com", "mattew.bassett@tiseagles.com"];
+const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(",").map(email => email.trim()) : [];
 
 export const isAdmin = (user: User): boolean => {
   return Boolean(user?.email && adminEmails.includes(user.email));
