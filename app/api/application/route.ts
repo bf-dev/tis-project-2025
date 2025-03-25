@@ -1,34 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { clerkClient, getAuth } from "@clerk/nextjs/server";
+import { auth } from "@/app/auth";
 import { isAdmin, isStudent } from "@/lib/acl";
 import { sendMail } from "@/lib/mail";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { userId } = await getAuth(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const user = await (await clerkClient()).users.getUser(userId);
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-  if (!isStudent(user) && !isAdmin(user)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
   try {
+    const body = await request.json();
+    const session = await auth();
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const user = session.user;
+    
+    if (!isStudent(user) && !isAdmin(user)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
     const opportunityId = body.opportunityId;
     const coverLetter = body.coverLetter;
-    const applicantEmail = user.emailAddresses[0].emailAddress;
-    const applicantName = user.fullName || applicantEmail.split("@")[0].replaceAll(".", " ")
+    const applicantEmail = user.email || "";
+    const applicantName = user.name || applicantEmail.split("@")[0].replaceAll(".", " ");
+    
     if (!opportunityId || !coverLetter || !applicantEmail || !applicantName) {
-        console.log(opportunityId, coverLetter, applicantEmail, applicantName);
+      console.log(opportunityId, coverLetter, applicantEmail, applicantName);
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
+    
     const application = await prisma.application.create({
       data: {
         opportunityId,
@@ -68,4 +71,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+} 

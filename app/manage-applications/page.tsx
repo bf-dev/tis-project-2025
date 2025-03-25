@@ -1,6 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { 
+  H1, 
+  H2, 
+  Paragraph, 
+  Tag, 
+  Button,
+  LoadingBox,
+  ErrorSummary,
+  Heading,
+  GridRow,
+  GridCol
+} from 'govuk-react';
+import Link from 'next/link';
 
 interface Application {
     id: string;
@@ -64,16 +77,16 @@ export default function ManageApplications() {
             fetchApplications();
         } catch (error) {
             console.error('Error:', error);
-            alert('Error updating application status');
+            setError('Error updating application status');
         }
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <LoadingBox>Loading applications...</LoadingBox>;
     }
 
     if (error) {
-        return <div className="text-red-600">{error}</div>;
+        return <ErrorSummary heading="There is a problem" description={error} />;
     }
 
     // Group applications by opportunity
@@ -89,116 +102,88 @@ export default function ManageApplications() {
         return acc;
     }, {} as Record<string, { opportunity: Application['opportunity'], applications: Application[] }>);
 
-    const buttonBaseStyle = {
-        fontSize: '0.75rem',
-        padding: '2px 8px',
-        borderRadius: '4px',
-        border: 'none',
-        cursor: 'pointer',
-        fontWeight: '500',
-    };
-
-    const acceptButtonStyle = {
-        ...buttonBaseStyle,
-        backgroundColor: '#10b981', // emerald-500
-        color: 'white',
-    };
-
-    const rejectButtonStyle = {
-        ...buttonBaseStyle,
-        backgroundColor: '#f43f5e', // rose-500
-        color: 'white',
-    };
-
-    const statusChipStyle = (status: string) => ({
-        ...buttonBaseStyle,
-        backgroundColor: status === 'ACCEPTED' ? '#10b981' : '#f43f5e',
-        color: 'white',
-    });
-
     return (
-        <div>
-            <h3>Manage Applications</h3>
+        <>
+            <H1>Manage Applications</H1>
             
             {Object.keys(applicationsByOpportunity).length === 0 ? (
-                <div className="text-center py-8">
-                    <p style={{ color: '#666', marginBottom: '1rem' }}>No applications received yet.</p>
-                    <a 
-                        href="/opportunities" 
-                        style={{ color: '#4f46e5', textDecoration: 'none' }}
-                    >
-                        View Your Opportunities
-                    </a>
+                <div>
+                    <Heading size="MEDIUM">No Applications</Heading>
+                    <Paragraph>No applications received yet.</Paragraph>
+                    <Button as={Link} href="/opportunities">View Your Opportunities</Button>
                 </div>
             ) : (
-                <div>
+                <>
                     {Object.entries(applicationsByOpportunity).map(([opportunityId, { opportunity, applications }]) => (
-                        <div key={opportunityId} style={{ padding: "10px", margin: "10px 0", border: "1px solid #eee", borderRadius: "4px" }}>
-                            <h5>
-                                <mark
-                                    style={{ 
-                                        position: "relative", 
-                                        bottom: "2px", 
-                                        marginRight: "2px",
-                                        backgroundColor: "#e5e7eb",
-                                        padding: "2px 8px",
-                                        borderRadius: "4px"
-                                    }}
-                                >
-                                    {opportunity.type}
-                                </mark>{" "}
-                                {opportunity.title}
-                            </h5>
+                        <div key={opportunityId} style={{ marginBottom: '30px' }}>
+                            <H2>
+                                {opportunity.type === "Service Project" ? (
+                                    <Tag style={{ backgroundColor: '#1d70b8' }}>Service Project</Tag>
+                                ) : (
+                                    <Tag>{opportunity.type}</Tag>
+                                )} {opportunity.title}
+                            </H2>
                             
-                            <div style={{ marginTop: '1rem' }}>
-                                {applications.map((application) => (
-                                    <div 
-                                        key={application.id} 
-                                        style={{ padding: "10px", border: "1px solid #eee", borderRadius: "4px", marginBottom: '1rem' }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <div>
-                                                <div style={{ fontWeight: '500' }}>{application.applicantName}</div>
-                                                <div style={{ fontSize: '0.875rem', color: '#666' }}>{application.applicantEmail}</div>
+                            {applications.map((application) => (
+                                <div key={application.id} style={{ marginBottom: '20px', borderBottom: '1px solid #b1b4b6', paddingBottom: '20px' }}>
+                                    <Heading size="MEDIUM">Application from {application.applicantName}</Heading>
+                                    
+                                    <GridRow>
+                                        <GridCol setWidth="two-thirds">
+                                            <div style={{ fontSize: '0.875rem', color: '#505a5f', marginBottom: '15px' }}>
+                                                <strong>Applicant:</strong> {application.applicantName} ({application.applicantEmail})
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {application.status === 'pending' ? (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(application.id, 'ACCEPTED')}
-                                                            style={acceptButtonStyle}
-                                                        >
-                                                            Accept
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(application.id, 'REJECTED')}
-                                                            style={rejectButtonStyle}
-                                                        >
-                                                            Reject
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <span style={statusChipStyle(application.status)}>
-                                                        {application.status.charAt(0) + application.status.slice(1).toLowerCase()}
-                                                    </span>
-                                                )}
+                                            
+                                            <div style={{ fontSize: '0.875rem', marginBottom: '10px' }}>
+                                                <strong>Applied on:</strong> {new Date(application.createdAt).toLocaleDateString()}
                                             </div>
-                                        </div>
+                                            
+                                            <div style={{ marginTop: '15px', borderLeft: '4px solid #b1b4b6', paddingLeft: '15px' }}>
+                                                <strong>Cover Letter:</strong><br />
+                                                {application.coverLetter}
+                                            </div>
+                                        </GridCol>
                                         
-                                        <div style={{ marginTop: '0.5rem' }}>
-                                            <p style={{ fontSize: '0.875rem', color: '#374151', whiteSpace: 'pre-wrap' }}>{application.coverLetter}</p>
-                                        </div>
-
-                                        <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
-                                            Applied on {new Date(application.createdAt).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                        <GridCol setWidth="one-third">
+                                            <div style={{ marginBottom: '15px' }}>
+                                                <strong>Status:</strong>
+                                            </div>
+                                            
+                                            {application.status === 'pending' ? (
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <Button 
+                                                        onClick={() => handleUpdateStatus(application.id, 'ACCEPTED')}
+                                                        buttonColour="#00703c"
+                                                    >
+                                                        Accept
+                                                    </Button>
+                                                    <Button 
+                                                        onClick={() => handleUpdateStatus(application.id, 'REJECTED')}
+                                                        buttonColour="#d4351c"
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ 
+                                                    display: 'inline-block', 
+                                                    backgroundColor: application.status === 'ACCEPTED' ? '#00703c' : '#d4351c',
+                                                    color: 'white',
+                                                    padding: '5px 10px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {application.status.charAt(0) + application.status.slice(1).toLowerCase()}
+                                                </div>
+                                            )}
+                                        </GridCol>
+                                    </GridRow>
+                                </div>
+                            ))}
                         </div>
                     ))}
-                </div>
+                </>
             )}
-        </div>
+        </>
     );
 } 

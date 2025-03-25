@@ -1,5 +1,11 @@
 "use client";
+import Link from "next/link";
+import { Button } from "govuk-react";
 
 export default function CreateButton() {
-  return <a href="/opportunities/create">Create New</a>;
+  return (
+    <Button as={Link} href="/opportunities/create">
+      Create new opportunity
+    </Button>
+  );
 }

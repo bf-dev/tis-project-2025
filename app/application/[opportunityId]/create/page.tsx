@@ -2,6 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  H1, 
+  H2, 
+  Paragraph, 
+  ErrorSummary, 
+  LoadingBox,
+  Tag,
+  Button,
+  Label,
+  HintText,
+  InsetText,
+  GridRow,
+  GridCol
+} from "govuk-react";
 
 interface Opportunity {
     id: string;
@@ -24,6 +39,7 @@ export default function CreateApplication() {
     const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchOpportunity = async () => {
@@ -52,6 +68,8 @@ export default function CreateApplication() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitting(true);
+        
         try {
             const response = await fetch('/api/application', {
                 method: 'POST',
@@ -68,11 +86,13 @@ export default function CreateApplication() {
                 router.push('/my-applications');
             } else {
                 const data = await response.json();
-                alert(data.error || 'Failed to submit application');
+                setError(data.error || 'Failed to submit application');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error submitting application');
+            setError('Error submitting application');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -84,65 +104,79 @@ export default function CreateApplication() {
     };
 
     if (!opportunityId) {
-        return <div className="max-w-2xl mx-auto p-4">Error: No opportunity specified</div>;
+        return (
+            <InsetText>
+                <H2>Error</H2>
+                <Paragraph>No opportunity specified</Paragraph>
+            </InsetText>
+        );
     }
 
     if (loading) {
-        return <div className="max-w-2xl mx-auto p-4">Loading...</div>;
+        return <LoadingBox>Loading opportunity details...</LoadingBox>;
     }
 
     if (error) {
-        return <div className="max-w-2xl mx-auto p-4 text-red-600">{error}</div>;
+        return <ErrorSummary heading="There is a problem" description={error} />;
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
-            {opportunity && (
-                <div style={{ padding: "10px", margin: "10px 0", border: "1px solid #eee", borderRadius: "4px" }}>
-                    <h5>
-                        <mark
-                            style={{ position: "relative", bottom: "2px", marginRight: "2px" }}
-                        >
-                            {opportunity.type}
-                        </mark>{" "}
-                        {opportunity.title}
-                    </h5>
-                    <cite>Created by {opportunity.creatorName}</cite>
-                    {opportunity.deadline && (
-                        <div style={{ fontSize: "0.9em", color: "#666" }}>
-                            Deadline: {opportunity.deadline}
-                        </div>
-                    )}
-                    <p>{opportunity.description}</p>
-                </div>
-            )}
+        <GridRow>
+            <GridCol setWidth="two-thirds">
+                {opportunity && (
+                    <>
+                        <H1>Apply for Opportunity</H1>
+                        <InsetText>
+                            <H2>{opportunity.title}</H2>
+                            <Tag>{opportunity.type}</Tag>
+                            <Paragraph>{'Created by ' + opportunity.creatorName}</Paragraph>
+                            
+                            {opportunity.deadline && (
+                                <InsetText>
+                                    <Paragraph>{'Deadline: ' + opportunity.deadline}</Paragraph>
+                                </InsetText>
+                            )}
+                            
+                            <div className="govuk-body">{opportunity.description}</div>
+                        </InsetText>
 
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 className="text-xl font-bold mb-6">Submit Your Application</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium">
-                            Message:
+                        <H2>Your Application</H2>
+                        <form onSubmit={handleSubmit}>
+                            <Label htmlFor="coverLetter">Message</Label>
+                            <HintText>
+                                Tell us why you&apos;re interested in this opportunity and what you hope to contribute
+                            </HintText>
                             <textarea
+                                id="coverLetter"
                                 name="coverLetter"
                                 value={formData.coverLetter}
                                 onChange={handleChange}
-                                required
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 rows={5}
-                                placeholder="Tell us why you're interested in this opportunity..."
+                                required
+                                className="govuk-textarea"
                             />
-                        </label>
-                    </div>
 
-                    <button
-                        type="submit"
-                        className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Submit Application
-                    </button>
-                </form>
-            </div>
-        </div>
+                            <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                                <Button 
+                                    type="submit" 
+                                    disabled={submitting}
+                                >
+                                    {submitting ? "Submitting..." : "Submit Application"}
+                                </Button>
+                                
+                                <Button 
+                                    as={Link} 
+                                    href="/opportunities"
+                                    buttonColour="#f3f2f1"
+                                    buttonTextColour="#0b0c0c"
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </form>
+                    </>
+                )}
+            </GridCol>
+        </GridRow>
     );
 } 

@@ -1,57 +1,141 @@
-import { isTeacher } from "@/lib/acl";
-import CreateButton from "./CreateButton";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
-import type { Opportunity } from ".prisma/client";
+"use client";
 
-export default async function Opportunities() {
-  const {userId} = await auth();
-  const opportunities = await prisma.opportunity.findMany({
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+import { isTeacher, isAdmin } from "@/lib/acl";
+import CreateButton from "./CreateButton";
+import { useSession } from "next-auth/react";
+import type { Opportunity } from "@prisma/client";
+import { useEffect, useState } from "react";
+import { 
+  H1, 
+  Paragraph, 
+  LoadingBox, 
+  ErrorSummary, 
+  Tag,
+  GridRow,
+  GridCol,
+  Button,
+  Heading
+} from "govuk-react";
+
+export default function Opportunities() {
+  const { data: session, status } = useSession();
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Fetch opportunities data
+    const fetchData = async () => {
+      try {
+        // Fetch opportunities
+        const res = await fetch('/api/opportunity');
+        if (!res.ok) {
+          throw new Error('Failed to fetch opportunities');
+        }
+        
+        const data = await res.json();
+        setOpportunities(data);
+      } catch (err) {
+        console.error(err);
+        setError("Error loading opportunities");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
-  if (!userId) {
-    return <div>Please sign in to continue</div>;
+  if (loading && status === "loading") {
+    return <LoadingBox>Loading opportunities...</LoadingBox>;
   }
-  const user = await currentUser();
-  if (!user) {
-    return <div>Please sign in to continue</div>;
+  
+  if (error) {
+    return <ErrorSummary heading="There is a problem" description={error} />;
   }
+  
+  if (status !== "authenticated" || !session?.user) {
+    return (
+      <div>
+        <Heading size="MEDIUM">Please sign in</Heading>
+        <Paragraph>You need to sign in to view opportunities.</Paragraph>
+      </div>
+    );
+  }
+  
   return (
-    <div>
-      <h3>Opportunities</h3>
-      {isTeacher(user) && <CreateButton />}
-      
-      {opportunities.map((opportunity: Opportunity) => (
-        <div key={opportunity.id} style={{ padding: "10px", margin: "10px 0", border: "1px solid #eee", borderRadius: "4px" }}>
-          <h5>
-            <mark
-              style={{ position: "relative", bottom: "2px", marginRight: "2px" }}
-            >
-              {opportunity.type}
-            </mark>{" "}
-            {opportunity.title}
-          </h5>
-          <cite>Created by {opportunity.creatorName}</cite>
-          {opportunity.deadline && (
-            <div style={{ fontSize: "0.9em", color: "#666" }}>
-              Deadline: {opportunity.deadline}
-            </div>
-          )}
-          <p>{opportunity.description}</p>
-          <div className="space-x-2">
-            <a href={`/application/${opportunity.id}/create`}>Apply</a>
-            {isTeacher(user) && opportunity.creatorEmail === user.emailAddresses[0].emailAddress && (
-              <>
-                <a href={`/opportunities/${opportunity.id}/edit`}>Edit</a>
-                <a href={`/opportunities/${opportunity.id}/delete`}>Delete</a>
-              </>
-            )}
-          </div>
+    <>
+      <H1>Opportunities</H1>
+      {isTeacher(session.user) && (
+        <div style={{ marginBottom: '20px' }}>
+          <CreateButton />
         </div>
-      ))}
-    </div>
+      )}
+      
+      {opportunities.length === 0 ? (
+        <div>
+          <Heading size="MEDIUM">No Opportunities</Heading>
+          <Paragraph>No opportunities available at this time.</Paragraph>
+        </div>
+      ) : (
+        opportunities.map((opportunity) => (
+          <div key={opportunity.id} style={{ marginBottom: '30px', borderBottom: '1px solid #b1b4b6', paddingBottom: '20px' }}>
+            <Heading size="MEDIUM">{opportunity.title}</Heading>
+            <GridRow>
+              <GridCol setWidth="two-thirds">
+                <div style={{ fontSize: '0.875rem', color: '#505a5f', marginBottom: '10px' }}>
+                  Created by {opportunity.creatorName}
+                </div>
+                
+                {opportunity.type === "Service Project" ? (
+                  <Tag style={{ backgroundColor: '#1d70b8' }}>Service Project</Tag>
+                ) : (
+                  <Tag>{opportunity.type}</Tag>
+                )}
+                
+                {opportunity.deadline && (
+                  <div style={{ margin: '15px 0' }}>
+                    <strong>Deadline:</strong> {opportunity.deadline}
+                  </div>
+                )}
+                
+                <Paragraph style={{ marginTop: '15px' }}>
+                  {opportunity.description}
+                </Paragraph>
+              </GridCol>
+              
+              <GridCol setWidth="one-third">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <Button as="a" href={`/application/${opportunity.id}/create`}>
+                    Apply
+                  </Button>
+                  
+                  {(isAdmin(session.user) || (isTeacher(session.user) && opportunity.creatorEmail === session.user.email)) && (
+                    <>
+                      <Button 
+                        as="a" 
+                        href={`/opportunities/${opportunity.id}/edit`} 
+                        buttonColour="#f3f2f1" 
+                        buttonTextColour="#0b0c0c"
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        as="a" 
+                        href={`/opportunities/${opportunity.id}/delete`} 
+                        buttonColour="#f3f2f1" 
+                        buttonTextColour="#0b0c0c"
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </GridCol>
+            </GridRow>
+          </div>
+        ))
+      )}
+    </>
   );
 }

@@ -2,6 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+    H1,
+    InputField,
+    Select,
+    Button,
+    ErrorSummary,
+    LoadingBox,
+    FormGroup
+} from 'govuk-react';
 
 interface Opportunity {
     id: string;
@@ -15,36 +25,44 @@ interface Opportunity {
 
 export default function EditOpportunity() {
     const router = useRouter();
-    const id = useParams().id;
+    const { id } = useParams();
     const [formData, setFormData] = useState({
+        id: id as string,
         title: '',
         description: '',
         deadline: '',
-        type: '',
-        creatorEmail: '',
-        creatorName: ''
+        type: ''
     });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchOpportunity = async () => {
             try {
+                setLoading(true);
                 const response = await fetch(`/api/opportunity`);
                 //filter out the opportunity with the id
                 const data = await response.json();
-                const opportunity = data.filter((opportunity: Opportunity) => opportunity.id === id)[0]
-                console.log(opportunity);
-                if (response.ok) {
-                    setFormData({
-                        title: opportunity.title || '',
-                        description: opportunity.description || '',
-                        deadline: opportunity.deadline || '',
-                        type: opportunity.type || '',
-                        creatorEmail: opportunity.creatorEmail || '',
-                        creatorName: opportunity.creatorName || ''
-                    });
+                const opportunity = data.filter((opportunity: Opportunity) => opportunity.id === id)[0];
+                
+                if (!opportunity) {
+                    setError('Opportunity not found');
+                    return;
                 }
+                
+                setFormData({
+                    id: id as string,
+                    title: opportunity.title || '',
+                    description: opportunity.description || '',
+                    deadline: opportunity.deadline || '',
+                    type: opportunity.type || ''
+                });
             } catch (error) {
                 console.error('Error fetching opportunity:', error);
+                setError('Failed to load opportunity');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -53,9 +71,12 @@ export default function EditOpportunity() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitting(true);
+        setError('');
+        
         try {
-            const response = await fetch(`/api/opportunity?id=${id}`, {
-                method: 'PUT',
+            const response = await fetch(`/api/opportunity`, {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -66,11 +87,13 @@ export default function EditOpportunity() {
                 router.push('/opportunities');
             } else {
                 const data = await response.json();
-                alert(data.error || 'Failed to update opportunity');
+                setError(data.error || 'Failed to update opportunity');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error updating opportunity');
+            setError('Error updating opportunity');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -81,71 +104,103 @@ export default function EditOpportunity() {
         });
     };
 
+    if (loading) {
+        return <LoadingBox>Loading opportunity details...</LoadingBox>;
+    }
+
+    if (error && !formData.title) {
+        return <ErrorSummary heading="There is a problem" description={error} />;
+    }
+
     return (
-        <div>
-            <h1>Edit Opportunity</h1>
+        <>
+            <H1>Edit Opportunity</H1>
+            
+            {error && (
+                <ErrorSummary 
+                    heading="There is a problem" 
+                    description={error}
+                />
+            )}
+            
             <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Title:</label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Description:</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <div>
-                    <label>Deadline:</label>
-                    <input
-                        type="date"
-                        name="deadline"
-                        value={formData.deadline}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Type:</label>
-                    <select
-                        name="type"
-                        value={formData.type}
-                        onChange={handleChange}
-                        required
+                <FormGroup>
+                    <InputField
+                        input={{
+                            name: "title",
+                            value: formData.title,
+                            onChange: handleChange,
+                            required: true
+                        }}
+                    >
+                        Title
+                    </InputField>
+                </FormGroup>
+                
+                <FormGroup>
+                    <div>
+                        <label htmlFor="description" style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
+                            Description
+                        </label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            required
+                            rows={5}
+                            style={{ width: '100%', padding: '10px', border: '2px solid #0b0c0c', borderRadius: '0' }}
+                        />
+                    </div>
+                </FormGroup>
+                
+                <FormGroup>
+                    <InputField
+                        input={{
+                            name: "deadline",
+                            type: "date",
+                            value: formData.deadline,
+                            onChange: handleChange
+                        }}
+                    >
+                        Deadline
+                    </InputField>
+                </FormGroup>
+                
+                <FormGroup>
+                    <Select
+                        input={{
+                            name: "type",
+                            value: formData.type,
+                            onChange: handleChange,
+                            required: true
+                        }}
+                        label="Type"
                     >
                         <option value="">Select a type</option>
                         <option value="Service Project">Service Project</option>
                         <option value="Internship">Internship</option>
-                    </select>
+                    </Select>
+                </FormGroup>
+                
+                <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+                    <Button 
+                        type="submit" 
+                        disabled={submitting}
+                    >
+                        {submitting ? 'Updating...' : 'Update Opportunity'}
+                    </Button>
+                    
+                    <Button 
+                        as={Link} 
+                        href="/opportunities" 
+                        buttonColour="#f3f2f1" 
+                        buttonTextColour="#0b0c0c"
+                    >
+                        Cancel
+                    </Button>
                 </div>
-                <div>
-                    <input
-                        type="hidden"
-                        name="creatorEmail"
-                        value={formData.creatorEmail}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <div>
-                    <input
-                        type="hidden"
-                        name="creatorName"
-                        value={formData.creatorName}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <button type="submit">Update Opportunity</button>
             </form>
-        </div>
+        </>
     );
 }

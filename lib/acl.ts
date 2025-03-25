@@ -1,15 +1,19 @@
-import { User } from "@clerk/nextjs/server";
+import type { Session } from "next-auth";
+
+type User = Session["user"];
 
 const adminEmails = ["bfdev.main@gmail.com", "mattew.bassett@tiseagles.com"];
 
-export const isAdmin = (user: User) => {
-  return adminEmails.includes(user.emailAddresses[0].emailAddress);
+export const isAdmin = (user: User): boolean => {
+  return Boolean(user?.email && adminEmails.includes(user.email));
 };
 
-export const isTeacher = (user: User) => {
-  return (user.emailAddresses[0].emailAddress.endsWith("@tiseagles.com")) || isAdmin(user);
+export const isTeacher = (user: User): boolean => {
+  return Boolean(user?.email && 
+    (user.email.endsWith("@tiseagles.com") || isAdmin(user)));
 };
 
-export const isStudent = (user: User) => {
-  return user.emailAddresses[0].emailAddress.endsWith("@students.tiseagles.com");
+export const isStudent = (user: User): boolean => {
+  return Boolean(user?.email && 
+    user.email.endsWith("@students.tiseagles.com"));
 };

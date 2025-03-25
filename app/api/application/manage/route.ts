@@ -1,27 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { clerkClient, getAuth } from '@clerk/nextjs/server';
+import { auth } from '@/app/auth';
 import { isTeacher } from '@/lib/acl';
 import { sendMail } from '@/lib/mail';
 
-export async function GET(request: NextRequest) {
-    const { userId } = await getAuth(request);
-    if (!userId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const user = await (await clerkClient()).users.getUser(userId);
-    if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    if (!isTeacher(user)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+export async function GET() {
     try {
+        const session = await auth();
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
+        const user = session.user;
+        
+        if (!isTeacher(user)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Ensure user.email is a string
+        const userEmail = user.email || '';
+        
+        if (!userEmail) {
+            return NextResponse.json({ error: 'User email not found' }, { status: 400 });
+        }
+
         const applications = await prisma.application.findMany({
             where: {
                 opportunity: {
-                    creatorEmail: user.emailAddresses[0].emailAddress
+                    creatorEmail: userEmail
                 }
             },
             include: {
@@ -31,6 +37,7 @@ export async function GET(request: NextRequest) {
                 createdAt: 'desc'
             }
         });
+        
         return NextResponse.json(applications);
     } catch (error) {
         console.error('Error fetching applications:', error);
@@ -39,19 +46,25 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const { userId } = await getAuth(request);
-    if (!userId) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const user = await (await clerkClient()).users.getUser(userId);
-    if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    if (!isTeacher(user)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     try {
+        const session = await auth();
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
+        const user = session.user;
+        
+        if (!isTeacher(user)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        // Ensure user.email is a string
+        const userEmail = user.email || '';
+        
+        if (!userEmail) {
+            return NextResponse.json({ error: 'User email not found' }, { status: 400 });
+        }
+
         const body = await request.json();
         const { applicationId, status } = body;
 
@@ -69,7 +82,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Application not found' }, { status: 404 });
         }
 
-        if (application.opportunity.creatorEmail !== user.emailAddresses[0].emailAddress) {
+        if (application.opportunity.creatorEmail !== userEmail) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -92,4 +105,4 @@ export async function POST(request: NextRequest) {
         console.error('Error updating application:', error);
         return NextResponse.json({ error: 'Failed to update application' }, { status: 500 });
     }
-}
+} 

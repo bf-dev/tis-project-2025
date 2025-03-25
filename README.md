@@ -1,24 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TIS Opportunities Platform
+
+This application allows students at The International School to browse and apply for internship and service opportunities.
+
+## Tech Stack
+
+- Next.js 15.x
+- TypeScript
+- Prisma
+- GOV.UK Design System (via govuk-react)
+- Microsoft Entra ID Authentication
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Create a `.env.local` file using the `.env.local.example` as a template
+3. Install dependencies:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Authentication
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This application uses Microsoft Entra ID (Azure AD) for authentication. You'll need to set up your Entra ID tenant and register an application to get the required client ID, client secret, and tenant ID.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Design System
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This application follows the GOV.UK Design System guidelines and uses the govuk-react component library. The key components used include:
+
+- TopNav: For the main navigation
+- GridRow/GridCol: For page layout
+- Panel: For information displays
+- Buttons: For action items
+- Form components: For data entry
+- Typography components: For consistent text styling (H1, H2, Paragraph, etc.)
+
+## Project Structure
+
+- `/app`: Next.js app router with pages and components
+- `/app/api`: API routes including authentication
+- `/app/components`: Shared React components
+- `/lib`: Utility functions and types
+- `/prisma`: Database schema and client
 
 ## Learn More
 

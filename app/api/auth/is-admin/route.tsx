@@ -1,17 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { clerkClient, getAuth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { auth } from '@/app/auth';
 import { isAdmin } from '@/lib/acl';
 
-export async function GET(request: NextRequest) {
-    const { userId } = await getAuth(request);
-    if (!userId) {
+export async function GET() {
+    const session = await auth();
+    if (!session || !session.user) {
         return NextResponse.json({ isAdmin: false });
     }
     
-    const user = await (await clerkClient()).users.getUser(userId);
-    if (!user) {
-        return NextResponse.json({ isAdmin: false });
-    }
-
-    return NextResponse.json({ isAdmin: isAdmin(user) });
+    return NextResponse.json({ isAdmin: isAdmin(session.user) });
 } 
