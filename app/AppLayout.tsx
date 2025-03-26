@@ -92,7 +92,7 @@ export default function AppLayout({
                 </GridRow>
             </Main>
 
-            <Footer licence={(<span>Made with ❤️ by Tianjin International School</span>)}>
+            <Footer licence={(<span>Made with ❤️ by Tianjin International School. Created by Insung Cho and Mr. Bassett.</span>)}>
    
             </Footer>
         </>
