@@ -142,10 +142,6 @@ function SignInContent() {
             )}
           </div>
         )}
-
-        <div style={{ marginTop: '1rem' }}>
-          <p className="govuk-body-s">By signing in, you agree to the TIS Opportunities Terms of Service</p>
-        </div>
       </GridCol>
     </GridRow>
   )
