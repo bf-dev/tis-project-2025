@@ -58,12 +58,16 @@ export default function AppLayout({
                 company={<TopNav.Anchor href="/">Tianjin International School</TopNav.Anchor>}
                 serviceTitle="Service Projects & Internships"
             >
-                <TopNav.NavLink href="/opportunities">
-                    Opportunities
-                </TopNav.NavLink>
-                <TopNav.NavLink href="/my-applications">
-                    My Applications
-                </TopNav.NavLink>
+                {user && (
+                    <TopNav.NavLink href="/opportunities">
+                        Opportunities
+                    </TopNav.NavLink>
+                )}
+                {user && (
+                    <TopNav.NavLink href="/my-applications">
+                        My Applications
+                    </TopNav.NavLink>
+                )}
                 
                 {user && isTeacher(user) && (
                     <TopNav.NavLink href="/manage-applications">
