@@ -1,9 +1,9 @@
 import NextAuth from "next-auth";
-import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { UserEmail } from "@/lib/types";
 import type { NextAuthConfig } from "next-auth";
 import type { User } from "next-auth";
+import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 
 // Extend next-auth types
 declare module "next-auth" {
@@ -24,11 +24,16 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Configuration for NextAuth
 export const config = {
   providers: [
-    AzureADProvider({
-      clientId: process.env.AZURE_AD_CLIENT_ID!,
-      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
-      // For Azure AD v2.0 endpoints
-      authorization: { params: { scope: "openid email profile User.Read" } },
+    MicrosoftEntraID({
+      clientId: process.env.AZURE_AD_CLIENT_ID || '',
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET || '',
+      issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID || 'common'}/v2.0`,
+      authorization: {
+        params: {
+          scope: 'openid profile email User.Read',
+          prompt: 'select_account'
+        }
+      }
     }),
     // Debug credentials provider (only available in development)
     ...(isDevelopment ? [
