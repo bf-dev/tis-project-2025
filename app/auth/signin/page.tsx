@@ -27,7 +27,7 @@ function SignInContent() {
 
   const handleAzureSignIn = async () => {
     setLoading(true)
-    await signIn('azure-ad', { callbackUrl })
+    await signIn('microsoft-entra-id', { callbackUrl })
   }
 
   const handleCredentialsSignIn = async (e: FormEvent) => {
