@@ -126,19 +126,30 @@ export default function CreateApplication() {
                 {opportunity && (
                     <>
                         <H1>Apply for Opportunity</H1>
-                        <InsetText>
+                        
+                        <div style={{ marginBottom: '30px' }}>
                             <H2>{opportunity.title}</H2>
-                            <Tag>{opportunity.type}</Tag>
-                            <Paragraph>{'Created by ' + opportunity.creatorName}</Paragraph>
                             
-                            {opportunity.deadline && (
-                                <InsetText>
-                                    <Paragraph>{'Deadline: ' + opportunity.deadline}</Paragraph>
-                                </InsetText>
+                            {opportunity.type === "Service Project" ? (
+                                <Tag style={{ backgroundColor: '#1d70b8' }}>Service Project</Tag>
+                            ) : (
+                                <Tag>{opportunity.type}</Tag>
                             )}
                             
-                            <div className="govuk-body">{opportunity.description}</div>
-                        </InsetText>
+                            <div style={{ fontSize: '0.875rem', color: '#505a5f', margin: '10px 0' }}>
+                                Created by {opportunity.creatorName}
+                            </div>
+                            
+                            {opportunity.deadline && (
+                                <div style={{ margin: '15px 0' }}>
+                                    <strong>Deadline:</strong> {opportunity.deadline}
+                                </div>
+                            )}
+                            
+                            <Paragraph>
+                                {opportunity.description}
+                            </Paragraph>
+                        </div>
 
                         <H2>Your Application</H2>
                         <form onSubmit={handleSubmit}>

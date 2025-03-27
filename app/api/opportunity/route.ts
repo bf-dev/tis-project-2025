@@ -118,13 +118,11 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
@@ -132,22 +130,27 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Opportunity ID is required' }, { status: 400 });
     }
 
-    
     const opportunity = await prisma.opportunity.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        applications: true
+      }
     });
 
-    
     if (!opportunity) {
       return NextResponse.json({ error: 'Opportunity not found' }, { status: 404 });
     }
 
-    
     if (opportunity.creatorEmail !== session.user.email) {
       return NextResponse.json({ error: 'You are not authorized to delete this opportunity' }, { status: 403 });
     }
 
-    
+    // Delete all applications first
+    await prisma.application.deleteMany({
+      where: { opportunityId: id }
+    });
+
+    // Then delete the opportunity
     await prisma.opportunity.delete({
       where: { id }
     });
