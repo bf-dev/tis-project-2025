@@ -52,7 +52,12 @@ export function AuthLoading({ children }: SignedInProps) {
 // SignInButton - Button to trigger sign in
 export function SignInButton({ children }: { children?: ReactNode }) {
   return (
-    <Button as={Link} href="/auth/signin">
+    <Button 
+      as={Link} 
+      href="/auth/signin"
+      buttonColour="#193182"
+      buttonTextColour="#ffffff"
+    >
       {children || "Sign In"}
     </Button>
   );

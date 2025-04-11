@@ -7,6 +7,7 @@ export default function Home() {
   const { user } = useUser();
   return (
     <>
+    
       <H1>Welcome to TIS Opportunities</H1>
       <SignedOut>
         <Paragraph>Please sign in to view and apply for opportunities at TIS.</Paragraph>
