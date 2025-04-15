@@ -1,4 +1,5 @@
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
 import { auth } from '@/auth'
 import { isTeacher } from '@/lib/acl'
 import { prisma } from '@/lib/prisma'
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 
-async function createOpportunity(formData: FormData) {
+async function updateOpportunity(opportunityId: string, formData: FormData) {
   'use server'
   
   const session = await auth()
@@ -27,26 +28,37 @@ async function createOpportunity(formData: FormData) {
     throw new Error('Unauthorized - Teachers only')
   }
 
+  const opportunity = await prisma.opportunity.findUnique({
+    where: { id: opportunityId }
+  })
+
+  if (!opportunity || opportunity.creatorEmail !== session.user.email) {
+    throw new Error('Unauthorized - Not the creator')
+  }
+
   const title = formData.get('title') as string
   const type = formData.get('type') as string
   const description = formData.get('description') as string
   const deadline = formData.get('deadline') as string
 
-  await prisma.opportunity.create({
+  await prisma.opportunity.update({
+    where: { id: opportunityId },
     data: {
       title,
       type,
       description,
       deadline: deadline || null,
-      creatorEmail: session.user.email!,
-      creatorName: session.user.name || 'Unknown',
     },
   })
 
   redirect('/opportunities')
 }
 
-export default async function CreateOpportunityPage() {
+export default async function EditOpportunityPage({
+  params,
+}: {
+  params: Promise<{ opportunityId: string }>
+}) {
   const session = await auth()
   
   if (!session?.user) {
@@ -57,13 +69,27 @@ export default async function CreateOpportunityPage() {
     redirect('/')
   }
 
+  const opportunity = await prisma.opportunity.findUnique({
+    where: { id: (await params).opportunityId }
+  })
+
+  if (!opportunity) {
+    notFound()
+  }
+
+  if (opportunity.creatorEmail !== session.user.email) {
+    redirect('/opportunities')
+  }
+
+  const updateOpportunityWithId = updateOpportunity.bind(null, (await params).opportunityId)
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Opportunity</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Opportunity</h1>
       
       <Card>
         <CardContent className="pt-6">
-          <form action={createOpportunity} className="space-y-6">
+          <form action={updateOpportunityWithId} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -71,14 +97,15 @@ export default async function CreateOpportunityPage() {
                 name="title"
                 id="title"
                 required
+                defaultValue={opportunity.title}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select name="type" required>
+              <Select name="type" required defaultValue={opportunity.type}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a type" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Internship">Internship</SelectItem>
@@ -94,6 +121,7 @@ export default async function CreateOpportunityPage() {
                 name="description"
                 rows={4}
                 required
+                defaultValue={opportunity.description}
               />
             </div>
 
@@ -103,12 +131,18 @@ export default async function CreateOpportunityPage() {
                 type="date"
                 name="deadline"
                 id="deadline"
+                defaultValue={opportunity.deadline?.split('T')[0] || ''}
               />
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
+              <Button variant="outline" asChild>
+                <Link href="/opportunities">
+                  Cancel
+                </Link>
+              </Button>
               <Button type="submit">
-                Create Opportunity
+                Save Changes
               </Button>
             </div>
           </form>

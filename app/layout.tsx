@@ -1,33 +1,33 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { Providers } from "./providers";
-import StyledComponentsRegistry from "@/lib/registry";
+import "@/app/globals.css"
 
-export const metadata: Metadata = {
-  title: "TIS Opportunities",
-  description: "Apply for internships and service projects at TIS",
-  icons: {
-    icon: '/favicon.png',
-  }
-};
+import AuthProvider from "@/components/Provider"
+import TopNavbar from "@/components/TopNavbar"
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
+export const metadata = {
+  title: 'TIS Opportunities',
+  description: 'Apply for service projects and internships in TIS',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body>
-        <StyledComponentsRegistry>
-          <Providers>{children}</Providers>
-        </StyledComponentsRegistry>
+      <body className="min-h-screen flex flex-col bg-background text-foreground">
+        <AuthProvider>
+          <TopNavbar />
+          <div className="container mx-auto px-4 py-8 flex-grow">
+            {children}
+          </div>
+          <footer className="py-6 border-t border-border">
+            <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+              Created with ❤️ by Insung Cho and Mr. Bassett
+            </div>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
-  );
+  )
 }
