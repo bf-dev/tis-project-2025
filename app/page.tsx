@@ -12,7 +12,7 @@ export default async function Home() {
           <h1 className="text-2xl font-bold">Welcome to the TIS Opportunities Portal</h1>
           <p className="text-lg">Log in to apply for service projects and internships in TIS</p>
           <Button asChild>
-            <Link href="/login">Login</Link>
+            <Link href="/api/auth/signin">Login</Link>
           </Button>
         </>
       )}
