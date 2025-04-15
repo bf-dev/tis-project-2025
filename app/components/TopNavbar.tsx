@@ -7,6 +7,7 @@ import { isTeacher, isAdmin } from '@/lib/acl';
 
 const TopNavbar = () => {
     const { user } = useUser();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [time, setTime] = useState({
         atlanta: '',
         dubai: '',
@@ -17,15 +18,12 @@ const TopNavbar = () => {
         const updateTime = () => {
             const now = new Date();
             
-            // Atlanta (UTC-4)
             const atlantaTime = new Date(now.getTime());
             atlantaTime.setHours(now.getUTCHours() - 4);
             
-            // Dubai (UTC+4)
             const dubaiTime = new Date(now.getTime());
             dubaiTime.setHours(now.getUTCHours() + 4);
             
-            // Beijing (UTC+8)
             const beijingTime = new Date(now.getTime());
             beijingTime.setHours(now.getUTCHours() + 8);
             
@@ -56,6 +54,10 @@ const TopNavbar = () => {
         
         return () => clearInterval(timer);
     }, []);
+
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
 
     return (
         <nav id="top-nav" className="top-0 z-50 transition duration-200">
@@ -104,7 +106,12 @@ const TopNavbar = () => {
                         </ul>
                         
                         <div className="flex items-center justify-between w-full px-4 lg:hidden">
-                            <button className="text-black">
+                            <button 
+                                className="text-black" 
+                                onClick={toggleMobileMenu}
+                                aria-expanded={mobileMenuOpen}
+                                aria-label="Toggle navigation menu"
+                            >
                                 <span className="sr-only">Open menu</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -142,6 +149,91 @@ const TopNavbar = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Mobile menu, show/hide based on menu state */}
+            {mobileMenuOpen && (
+                <div className="fixed lg:hidden z-50 inset-0 w-full p-3 bg-transparent overflow-y-scroll">
+                    <div className="rounded bg-white shadow-lg overflow-hidden">
+                        <div className="px-4 mb-1">
+                            <button 
+                                className="text-gray-500 font-medium text-sm"
+                                onClick={toggleMobileMenu}
+                            >
+                                Close menu
+                            </button>
+                        </div>
+                        <ul className="border-b border-gray-300 divide-y divide-gray-300">
+                            <li>
+                                <Link 
+                                    href="/" 
+                                    className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-black"
+                                    onClick={toggleMobileMenu}
+                                >
+                                    <span>Home</span>
+                                </Link>
+                            </li>
+                            
+                            {user && (
+                                <li>
+                                    <Link 
+                                        href="/opportunities" 
+                                        className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-transparent"
+                                        onClick={toggleMobileMenu}
+                                    >
+                                        <span>Opportunities</span>
+                                    </Link>
+                                </li>
+                            )}
+                            
+                            {user && (
+                                <li>
+                                    <Link 
+                                        href="/my-applications" 
+                                        className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-transparent"
+                                        onClick={toggleMobileMenu}
+                                    >
+                                        <span>My Applications</span>
+                                    </Link>
+                                </li>
+                            )}
+                            
+                            {user && isTeacher(user) && (
+                                <li>
+                                    <Link 
+                                        href="/manage-applications" 
+                                        className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-transparent"
+                                        onClick={toggleMobileMenu}
+                                    >
+                                        <span>Manage Applications</span>
+                                    </Link>
+                                </li>
+                            )}
+                            
+                            {user && isAdmin(user) && (
+                                <li>
+                                    <Link 
+                                        href="/admin/dashboard" 
+                                        className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-transparent"
+                                        onClick={toggleMobileMenu}
+                                    >
+                                        <span>Admin Dashboard</span>
+                                    </Link>
+                                </li>
+                            )}
+                            
+                            <li>
+                                <Link 
+                                    href="/auth/signin" 
+                                    className="border-l-8 px-4 py-2 flex items-center justify-start space-x-2 border-transparent"
+                                    onClick={toggleMobileMenu}
+                                >
+                                    <span>Login</span>
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 };
