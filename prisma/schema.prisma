@@ -16,7 +16,7 @@ model Application {
     applicantName String
     applicantEmail String
    
-    coverLetter  String
+    coverLetter  String      @db.Text
     status       String      @default("pending")
     
     opportunity  Opportunity @relation(fields: [opportunityId], references: [id])
