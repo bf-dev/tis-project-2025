@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { auth } from '@/auth'
-import { isStudent } from '@/lib/acl'
+import { isAdmin, isStudent } from '@/lib/acl'
 
 export default async function Opportunity({
   opportunity,
@@ -14,7 +14,7 @@ export default async function Opportunity({
   }
 }) {
   const session = await auth()
-  const isCreator = session?.user?.email === opportunity.creatorEmail
+  const isCreator = (session?.user?.email === opportunity.creatorEmail) || isAdmin(session?.user)
   const canApply = session?.user && isStudent(session.user)
 
   return (

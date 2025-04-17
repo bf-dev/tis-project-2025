@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/auth'
-import { isTeacher } from '@/lib/acl'
+import { isTeacher, isAdmin } from '@/lib/acl'
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -32,8 +32,8 @@ async function updateOpportunity(opportunityId: string, formData: FormData) {
     where: { id: opportunityId }
   })
 
-  if (!opportunity || opportunity.creatorEmail !== session.user.email) {
-    throw new Error('Unauthorized - Not the creator')
+  if (!opportunity || (!isAdmin(session.user) && opportunity.creatorEmail !== session.user.email)) {
+    throw new Error('Unauthorized - Not the creator or admin')
   }
 
   const title = formData.get('title') as string
@@ -77,7 +77,7 @@ export default async function EditOpportunityPage({
     notFound()
   }
 
-  if (opportunity.creatorEmail !== session.user.email) {
+  if (!isAdmin(session.user) && opportunity.creatorEmail !== session.user.email) {
     redirect('/opportunities')
   }
 

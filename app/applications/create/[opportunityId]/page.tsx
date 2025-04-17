@@ -68,7 +68,7 @@ You can review this application at: ${process.env.NEXT_PUBLIC_APP_URL}/applicati
 Best regards,
 TIS Team
   `.trim()
-
+  console.log(opportunity.creatorEmail, emailSubject, emailBody)
   await sendMail(opportunity.creatorEmail, emailSubject, emailBody)
 
   redirect('/applications')

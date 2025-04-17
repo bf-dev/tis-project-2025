@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/auth'
-import { isTeacher } from '@/lib/acl'
+import { isTeacher, isAdmin } from '@/lib/acl'
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,8 +31,8 @@ async function deleteOpportunity(opportunityId: string) {
     }
   })
 
-  if (!opportunity || opportunity.creatorEmail !== session.user.email) {
-    throw new Error('Unauthorized - Not the creator')
+  if (!opportunity || (!isAdmin(session.user) && opportunity.creatorEmail !== session.user.email)) {
+    throw new Error('Unauthorized - Not the creator or admin')
   }
 
   // First delete all applications
@@ -82,7 +82,7 @@ export default async function DeleteOpportunityPage({
     notFound()
   }
 
-  if (opportunity.creatorEmail !== session.user.email) {
+  if (!isAdmin(session.user) && opportunity.creatorEmail !== session.user.email) {
     redirect('/opportunities')
   }
 
