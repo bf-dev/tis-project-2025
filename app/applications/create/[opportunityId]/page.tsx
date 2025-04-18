@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { applicationQuestions } from '@/lib/questions'
 import { sendMail } from '@/lib/mail'
+import { after } from 'next/server'
 
 async function createApplication(opportunityId: string, formData: FormData) {
   'use server'
@@ -68,9 +69,9 @@ You can review this application at: ${process.env.NEXT_PUBLIC_APP_URL}/applicati
 Best regards,
 TIS Team
   `.trim()
-  console.log(opportunity.creatorEmail, emailSubject, emailBody)
-  await sendMail(opportunity.creatorEmail, emailSubject, emailBody)
-
+  after(()=>{
+    sendMail(opportunity.creatorEmail, emailSubject, emailBody)
+  })
   redirect('/applications')
 }
 

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { sendMail } from '@/lib/mail'
+import { after } from 'next/server'
 
 const statusStyles = {
   pending: {
@@ -86,7 +87,9 @@ ${application.opportunity.creatorName}
   }
 
   if (emailBody) {
-    await sendMail(application.applicantEmail, emailSubject, emailBody)
+    after(()=>{
+      sendMail(application.applicantEmail, emailSubject, emailBody)
+    })
   }
 
   redirect('/applications/manage')
