@@ -22,7 +22,15 @@
 
 # misc
 .DS_Store
+*.log
+.idea/
 *.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+id_rsa*
+serviceAccount*.json
 
 # debug
 npm-debug.log*
@@ -30,8 +38,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env
+# env files (never commit real secrets)
+.env*
+!.env*.example
 
 # vercel
 .vercel
@@ -43,4 +52,3 @@ next-env.d.ts
 # clerk configuration (can include secrets)
 /.clerk/
 prisma/dev.db
-.env.local
